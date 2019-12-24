@@ -1,0 +1,40 @@
+# Predicting the sex of an individual using height using logistic regression
+
+# Data is pulled from caret pacakge "heights" dataset.
+
+library(caret)
+library(dslabs)
+library(plotly)
+library(tidyr)
+data(heights)
+data <- heights
+summary(data)
+
+# Data partition
+n = dim(data)[1]
+suppressWarnings(RNGversion("3.5.9"))
+set.seed(12345)
+id = sample(1:n, floor(n*0.5))
+train_data <- data[id,]
+test_data <- data[-id,]
+
+# visualising data to understand the trend of height
+
+ggplot(data, aes(data$height)) + geom_histogram(bins = 20, color = "black", fill = "red", alpha = 0.5) +
+  xlab("Height") + theme_light()
+
+# train the model
+model <- glm(sex ~ height, family = "binomial", data = train_data)
+head(data)
+# predict the model on test data
+pred_model <- predict(model, newdata = test_data, type = "response")
+class_mat <- ifelse(pred_model > 0.5, 2, 1) # predicted values are caterigorised into 2 and 1 
+
+plot(x=test_data$height,y=test_data$sex,col="blue")
+points(x=test_data$height,y=class_mat,col="red")
+
+conf_mat <- table(test_data$sex, class_mat) # create confusion matrix
+misclass <- 1 - (sum(diag(conf_mat))/sum(conf_mat)) #The test error is determined here
+cat("The test error of our model is", misclass)
+accuracy <- 1 - misclass
+cat("The accuracy of our model is", accuracy*100,"%")
